@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Pimath IA</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  box-sizing:border-box;
+  --bg:#FFFFFF; --panel:#FFFFFF; --panel-2:#F1ECDD; --ink:#1C2620; --ink-dim:#5E6B62;
+  --gold:#B8791E; --gold-soft:#F3E4C4; --line:#E4DCC8; --user-bubble:#E8DFC4; --bot-bubble:#F4F1E8;
+  --error:#B8422F;
+  --font-display:'Fraunces', Georgia, serif;
+  --font-body:'Inter', system-ui, sans-serif;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+:root:not([data-theme="dark"]){
+  --bg:#FFFFFF; --panel:#FFFFFF; --panel-2:#F1ECDD; --ink:#1C2620; --ink-dim:#5E6B62;
+  --gold:#B8791E; --gold-soft:#F3E4C4; --line:#E4DCC8; --user-bubble:#E8DFC4; --bot-bubble:#F4F1E8;
+  --error:#B8422F;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#FFFFFF; --panel:#FFFFFF; --panel-2:#F1ECDD; --ink:#1C2620; --ink-dim:#5E6B62;
+    --gold:#B8791E; --gold-soft:#F3E4C4; --line:#E4DCC8; --user-bubble:#E8DFC4; --bot-bubble:#F4F1E8;
+    --error:#B8422F;
+  }
+}
+html{scroll-padding-top:env(safe-area-inset-top,0px); height:100%;}
+body{
+  height:100%; margin:0; background:var(--bg); color:var(--ink);
+  font-family:var(--font-body); display:flex; flex-direction:column;
+}
+* { box-sizing:border-box; }
+
+#nameScreen{
+  flex:1; display:flex; align-items:center; justify-content:center; padding:24px;
+}
+.name-card{ max-width:340px; width:100%; text-align:center; }
+.name-badge{
+  width:64px; height:64px; border-radius:50%; background:var(--gold-soft);
+  display:flex; align-items:center; justify-content:center; font-size:1.8rem;
+  margin:0 auto 16px;
+}
+.name-card h2{ font-family:var(--font-display); font-weight:700; font-size:1.4rem; margin:0 0 6px; }
+.name-card p{ color:var(--ink-dim); font-size:.9rem; margin:0 0 18px; }
+.name-card input{
+  width:100%; padding:12px 16px; border:1px solid var(--line); border-radius:10px;
+  font-family:var(--font-body); font-size:1rem; background:var(--panel); color:var(--ink);
+  margin-bottom:14px; outline:none;
+}
+.name-card input:focus{ outline:2px solid var(--gold); outline-offset:1px; }
+.name-card button{
+  width:100%; padding:12px; border:none; border-radius:10px; background:var(--gold);
+  color:#fff; font-size:1rem; font-weight:600; cursor:pointer; font-family:var(--font-body);
+}
+
+#appShell{ flex:1; display:flex; flex-direction:column; min-height:0; }
+header{
+  padding:18px 20px calc(14px); border-bottom:1px solid var(--line);
+  display:flex; align-items:baseline; gap:10px; flex-shrink:0;
+}
+header h1{ font-family:var(--font-display); font-weight:700; font-size:1.4rem; margin:0; }
+header span{ font-size:.8rem; color:var(--ink-dim); flex:1; }
+
+.icon-btn{ background:none; border:none; font-size:1.05rem; cursor:pointer; padding:4px; color:var(--ink); flex-shrink:0; }
+
+#sidebar{
+  position:fixed; top:0; left:-82%; width:82%; max-width:300px; height:100%;
+  background:var(--panel); border-right:1px solid var(--line); z-index:30;
+  display:flex; flex-direction:column; padding:16px; padding-top:calc(16px + env(safe-area-inset-top,0px));
+  transition:left .25s ease; box-shadow:2px 0 16px rgba(0,0,0,.08);
+}
+#sidebar.open{ left:0; }
+#sidebarHeader{ display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; }
+#sidebarHeader h3{ font-family:var(--font-display); margin:0; font-size:1.1rem; }
+#sidebarClose{ background:none; border:none; font-size:1rem; cursor:pointer; color:var(--ink-dim); }
+#sidebarNewChat{
+  width:100%; padding:10px; border:1px solid var(--gold); border-radius:10px; background:var(--gold-soft);
+  color:var(--gold); font-weight:600; font-size:.9rem; cursor:pointer; margin-bottom:14px; font-family:var(--font-body);
+}
+#historyList{ flex:1; overflow-y:auto; }
+.history-item{
+  padding:10px 8px; border-radius:8px; font-size:.85rem; color:var(--ink); cursor:pointer;
+  border-bottom:1px solid var(--line);
+  display:flex; align-items:center; justify-content:space-between; gap:6px;
+}
+.history-item.active{ background:var(--panel-2); font-weight:600; }
+.history-title{ flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.history-delete{
+  flex-shrink:0; background:none; border:none; font-size:.8rem; cursor:pointer;
+  opacity:.55; padding:2px 6px; border-radius:6px; white-space:nowrap;
+}
+.history-delete[data-confirm="1"]{ opacity:1; background:var(--error); color:#fff; font-weight:600; }
+.history-delete:hover{ opacity:1; background:var(--gold-soft); }
+#sidebarOverlay{
+  position:fixed; inset:0; background:rgba(0,0,0,.25); z-index:25;
+  opacity:0; pointer-events:none; transition:opacity .25s ease;
+}
+#sidebar.open ~ #sidebarOverlay, #sidebar.open + #sidebarOverlay{ opacity:1; pointer-events:auto; }
+
+#areas{
+  display:flex; gap:8px; padding:10px 16px; overflow-x:auto; flex-shrink:0;
+  border-bottom:1px solid var(--line);
+}
+.area-chip{
+  font-family:var(--font-body); font-size:.82rem; padding:6px 13px; border-radius:20px;
+  border:1px solid var(--line); background:var(--panel); color:var(--ink-dim);
+  white-space:nowrap; cursor:pointer; transition:background .15s, color .15s;
+}
+.area-chip.active{ background:var(--gold-soft); color:var(--gold); border-color:var(--gold); }
+
+#chat{ flex:1; overflow-y:auto; padding:16px; display:flex; flex-direction:column; gap:12px; }
+.msg{ max-width:82%; padding:11px 14px; border-radius:14px; line-height:1.5; font-size:.95rem; }
+.msg.user{ align-self:flex-end; background:#F7F6F2; border-radius:14px; border-bottom-right-radius:4px; }
+.msg.bot{ align-self:flex-start; background:transparent; border:none; }
+.msg.bot.thinking{ background:transparent; border:none; padding:4px 0; align-self:flex-start; display:flex; align-items:center; gap:10px; }
+.thinking-logo{ width:44px; height:44px; display:block; border-radius:50%; object-fit:cover; background:var(--bot-bubble); border:1px solid var(--line); animation:pimath-pulse 1.1s ease-in-out infinite; flex-shrink:0; }
+.thinking-text{ color:var(--ink-dim); font-size:.9rem; font-style:italic; }
+@keyframes pimath-pulse{ 0%,100%{ transform:scale(1); opacity:1; } 50%{ transform:scale(1.08); opacity:.75; } }
+.msg img.attach{ max-width:100%; border-radius:8px; display:block; margin-bottom:6px; }
+.msg :is(h1,h2,h3){ font-family:var(--font-display); font-size:1.05rem; margin:.4em 0 .2em; }
+.msg strong{ color:var(--gold); }
+.msg code{ background:var(--panel-2); padding:1px 5px; border-radius:4px; font-size:.88em; }
+.msg ol, .msg ul{ padding-left:1.2em; margin:.4em 0; }
+.error-note{ align-self:center; color:var(--error); font-size:.82rem; text-align:center; }
+
+#composer{
+  flex-shrink:0; border-top:1px solid var(--line); background:var(--panel);
+  padding:10px 12px calc(10px + env(safe-area-inset-bottom,0px));
+}
+#preview{ display:none; padding:0 4px 8px; }
+#preview img{ height:64px; border-radius:8px; border:1px solid var(--line); }
+#preview button{ margin-left:8px; font-size:.75rem; background:none; border:none; color:var(--ink-dim); cursor:pointer; text-decoration:underline; }
+#row{ display:flex; align-items:flex-end; gap:8px; }
+#imgBtn{
+  flex-shrink:0; width:42px; height:42px; border-radius:10px; border:1px solid var(--line);
+  background:var(--panel-2); color:var(--ink); font-size:1.1rem; cursor:pointer;
+  display:flex; align-items:center; justify-content:center;
+}
+#imgBtn.disabled{ opacity:.35; cursor:not-allowed; pointer-events:none; }
+textarea#input{
+  flex:1; resize:none; max-height:120px; border-radius:10px; border:1px solid var(--line);
+  background:var(--bg); color:var(--ink); padding:10px 14px; font-family:var(--font-body);
+  font-size:.95rem; line-height:1.4;
+}
+textarea#input:focus{ outline:2px solid var(--gold); outline-offset:1px; }
+#sendBtn{
+  flex-shrink:0; width:42px; height:42px; border-radius:10px; border:none;
+  background:var(--gold); color:var(--bg); font-size:1.05rem; cursor:pointer; font-weight:600;
+}
+#sendBtn:disabled{ opacity:.4; cursor:not-allowed; }
+#stopBtn{
+  flex-shrink:0; padding:0 12px; height:40px; border-radius:18px; border:1px solid var(--error);
+  background:transparent; color:var(--error); font-size:.82rem; cursor:pointer; display:none;
+}
+#unavailable{ display:none; padding:14px; text-align:center; color:var(--ink-dim); font-size:.85rem; }
+::selection{ background:var(--gold-soft); }
+</style>
+</head>
+<body>
+
+<div id="nameScreen">
+  <div class="name-card">
+    <div class="name-badge">🧮</div>
+    <h2>¡Bienvenido a Pimath IA!</h2>
+    <p>¿Cómo quieres que te llame?</p>
+    <input type="text" id="nameInput" placeholder="Escribe tu nombre..." maxlength="30">
+    <button id="nameSubmit">Entrar a Pimath IA</button>
+  </div>
+</div>
+
+<div id="sidebar">
+  <div id="sidebarHeader">
+    <h3>Historial</h3>
+    <button id="sidebarClose" title="Cerrar">✕</button>
+  </div>
+  <button id="sidebarNewChat">+ Nuevo chat</button>
+  <div id="historyList"></div>
+</div>
+<div id="sidebarOverlay"></div>
+
+<div id="appShell" style="display:none">
+<header>
+  <button id="menuBtn" class="icon-btn" title="Historial">☰</button>
+  <h1>Pimath IA</h1>
+  <span>Tu profesor IA</span>
+</header>
+
+<div id="areas">
+  <button class="area-chip active" data-area="">General</button>
+  <button class="area-chip" data-area="Aritmética">Aritmética</button>
+  <button class="area-chip" data-area="Álgebra">Álgebra</button>
+  <button class="area-chip" data-area="Geometría">Geometría</button>
+  <button class="area-chip" data-area="Estadística">Estadística</button>
+</div>
+
+<div id="chat"></div>
+<div id="unavailable">Pimath IA no está disponible en esta vista.</div>
+
+<div id="composer">
+  <div id="preview"><img id="previewImg" alt=""><button id="removeImg">quitar</button></div>
+  <div id="row">
+    <label id="imgBtn" for="fileInput" title="Subir foto del problema">📷</label>
+    <textarea id="input" rows="1" placeholder="Escribe tu pregunta o duda de matemáticas..."></textarea>
+    <button id="stopBtn">Detener</button>
+    <button id="sendBtn">➤</button>
+  </div>
+  <input type="file" id="fileInput" accept="image/*" capture="environment" style="position:absolute;width:1px;height:1px;opacity:0;overflow:hidden;">
+</div>
+</div>
+
+
+<script>
+const RULES = `Eres Pimath IA, un tutor educacional especializado y con vocación pedagógica, diseñado para guiar y mejorar las habilidades académicas de los estudiantes en las áreas de Aritmética, Álgebra, Geometría y Estadística.
+
+OBJETIVO PRINCIPAL:
+Tu propósito es ayudar al estudiante a comprender la matemática de manera intuitiva, resolver sus dudas, explicar ejercicios paso a paso y promover el aprendizaje autónomo para mejorar sus calificaciones y confianza.
+
+REGLAS DE COMPORTAMIENTO Y PEDAGOGÍA:
+1. Tono y Estilo:
+   - Mantén un tono paciente, motivador, claro y cercano.
+   - Utiliza un lenguaje accesible, adaptado al nivel académico del usuario (educación básica, media o secundaria).
+
+2. Resolución de Problemas Paso a Paso:
+   - Cuando el usuario envíe un problema o pregunta, NUNCA entregues solo la respuesta final directa.
+   - Desglosa la solución en pasos lógicos, numerados y claramente explicados.
+   - En cada paso, explica brevemente el por qué de la operación o fórmula aplicada.
+
+3. Adaptabilidad por Áreas:
+   - Álgebra: Muestra con claridad los despejes, simplificaciones y factorización.
+   - Geometría: Describe visualmente la figura o relación geométrica y especifica las fórmulas de área, perímetro o volumen utilizadas.
+   - Estadística: Explica el significado de los datos, las fórmulas (media, mediana, moda, probabilidad) y la interpretación de los resultados.
+   - Aritmética: Enfatiza la jerarquía de operaciones y los conceptos fundamentales.
+
+4. Formato de Respuesta:
+   - Usa formato Markdown simple (negritas con **, listas numeradas) para destacar conceptos clave.
+   - Representa las fórmulas y operaciones matemáticas de manera ordenada y legible en texto plano (sin LaTeX).
+   - Finaliza las respuestas complejas con una breve pregunta de comprobación (ej. "¿Te quedó claro este paso o quieres que hagamos un ejemplo similar?").
+
+5. Fomento del Razonamiento:
+   - Si el estudiante comete un error en su planteamiento, señálalo con amabilidad y muéstrale dónde estuvo la falla para que aprenda a autocorregirse.
+   - Si el usuario te pide la respuesta a una tarea o examen directo, guía el procedimiento sin limitarte a darle la solución de forma pasiva.
+
+6. Identidad:
+   - Si el estudiante pregunta quién te creó, quién es tu creador o de dónde vienes, responde que fuiste creada por la empresa Gámez, fundada por David Gámez, especialmente para ayudar a los estudiantes a mejorar sus habilidades de aprendizaje, comprender las matemáticas paso a paso y alcanzar un excelente rendimiento académico. No menciones ninguna otra empresa de tecnología ni modelo de lenguaje al responder esto.
+
+Responde siempre en español.`;
+const LOGO_SRC = "data:image/png;base64,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
